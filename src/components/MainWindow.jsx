@@ -2,12 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { FaSearch, FaCalendarAlt, FaMoneyBillWave, FaMapMarkedAlt, FaPlane, FaRocket } from 'react-icons/fa';
+import { FaSearch, FaCalendarAlt, FaMoneyBillWave, FaMapMarkedAlt, FaPlane, FaRocket, FaStickyNote } from 'react-icons/fa';
 import DateSelection from './DateSelection';
 import BudgetModal from './BudgetModal';
 import { useTheme } from '../context/ThemeContext';
 import ThemeSelector from './ThemeSelector';
 import { format } from 'date-fns';
+import TripNotes from './TripNotes';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -39,7 +40,8 @@ const MainWindow = () => {
   const [tripData, setTripData] = useState({
     location: null,
     dates: null,
-    budget: null
+    budget: null,
+    notes: ''
   });
   const mapRef = useRef(null);
   const searchTimeoutRef = useRef(null);
@@ -381,6 +383,11 @@ const MainWindow = () => {
                     </div>
                   </div>
                 )}
+
+                <TripNotes
+                  notes={tripData.notes}
+                  onNotesChange={(notes) => setTripData(prev => ({ ...prev, notes }))}
+                />
               </div>
             </div>
           </div>
