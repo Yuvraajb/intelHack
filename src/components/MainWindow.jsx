@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { FaSearch, FaCalendarAlt, FaMoneyBillWave, FaMapMarkedAlt, FaPlane, FaRocket, FaStickyNote } from 'react-icons/fa';
+import { FaSearch, FaCalendarAlt, FaMoneyBillWave, FaMapMarkedAlt, FaPlane, FaRocket, FaStickyNote, FaExchangeAlt, FaInfoCircle, FaRobot, FaSpinner } from 'react-icons/fa';
 import DateSelection from './DateSelection';
 import BudgetModal from './BudgetModal';
 import { useTheme } from '../context/ThemeContext';
 import ThemeSelector from './ThemeSelector';
 import { format } from 'date-fns';
 import TripNotes from './TripNotes';
+import CurrencyExchange from './CurrencyExchange';
 
 // Fix for default marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -45,6 +46,7 @@ const MainWindow = () => {
   });
   const mapRef = useRef(null);
   const searchTimeoutRef = useRef(null);
+  const [loading, setLoading] = useState(false);
 
   // Default map center and zoom
   const defaultCenter = [51.505, -0.09];
@@ -93,6 +95,7 @@ const MainWindow = () => {
     
     setIsSearching(true);
     setError(null);
+    setLoading(true);
     
     try {
       const response = await fetch(
@@ -126,6 +129,7 @@ const MainWindow = () => {
       setSelectedLocation(null);
     } finally {
       setIsSearching(false);
+      setLoading(false);
     }
   };
 
@@ -384,6 +388,14 @@ const MainWindow = () => {
                   </div>
                 )}
 
+                {/* Currency Exchange */}
+                {tripData.budget && selectedLocation && (
+                  <CurrencyExchange
+                    budget={tripData.budget.amount}
+                    destinationCountry={selectedLocation.name}
+                  />
+                )}
+
                 <TripNotes
                   notes={tripData.notes}
                   onNotesChange={(notes) => setTripData(prev => ({ ...prev, notes }))}
@@ -407,6 +419,73 @@ const MainWindow = () => {
             <FaRocket className="text-2xl" />
             <span className="text-xl font-medium">Deep Seek</span>
           </button>
+        </div>
+
+        {/* Response Box */}
+        <div className="mt-8 max-w-4xl mx-auto">
+          <div 
+            className="rounded-lg p-6 transition-all duration-300"
+            style={{ 
+              backgroundColor: theme.backgroundAlt,
+              border: `1px solid ${theme.border}`,
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+            }}
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <FaRobot style={{ color: theme.primary }} className="text-xl" />
+              <h3 className="text-lg font-medium" style={{ color: theme.text }}>
+                TravelSeekr.AI Response
+              </h3>
+            </div>
+
+            <div 
+              className="rounded-lg p-4 min-h-[200px] max-h-[400px] overflow-y-auto"
+              style={{ 
+                backgroundColor: theme.background,
+                border: `1px solid ${theme.border}`
+              }}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center h-full">
+                  <FaSpinner className="animate-spin text-2xl" style={{ color: theme.primary }} />
+                </div>
+              ) : error ? (
+                <div className="text-center" style={{ color: theme.primary }}>
+                  {error}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {/* Response content will be rendered here */}
+                  <div className="prose prose-sm" style={{ color: theme.text }}>
+                    <p>Your personalized travel recommendations will appear here.</p>
+                    <ul className="list-disc pl-5 space-y-2">
+                      <li>Destination insights</li>
+                      <li>Budget analysis</li>
+                      <li>Local currency information</li>
+                      <li>Travel tips and recommendations</li>
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-4 flex justify-between items-center">
+              <div className="text-sm" style={{ color: theme.textLight }}>
+                Last updated: {new Date().toLocaleTimeString()}
+              </div>
+              <button
+                className="px-4 py-2 rounded-lg transition-colors"
+                style={{ 
+                  backgroundColor: theme.primary,
+                  color: theme.background,
+                  opacity: loading ? 0.5 : 1
+                }}
+                disabled={loading}
+              >
+                Refresh
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
